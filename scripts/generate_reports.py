@@ -55,15 +55,12 @@ def evaluate_blocking_on_dataset(train_df: pd.DataFrame) -> dict:
     records = list(entities.values())
     blocker = CandidateBlocker(prefix_len=4, window_size=5)
 
-    start_t = time.time()
     p_brand = blocker.block_by_brand(records)
     p_pref = blocker.block_by_prefix(records)
     p_sn = blocker.block_sorted_neighborhood(records)
     candidates = p_brand.union(p_pref).union(p_sn)
-    elapsed = time.time() - start_t
 
     b_eval = blocker.evaluate_blocking(candidates, gt_matches, len(records))
-    b_eval["runtime_seconds"] = float(elapsed)
     return b_eval
 
 def main():
@@ -225,7 +222,6 @@ def main():
             "total_possible": blocking_res["total_possible"],
             "pair_reduction_ratio": round(blocking_res["pair_reduction_ratio"], 4),
             "pair_completeness_recall": round(blocking_res["pair_completeness_recall"], 4),
-            "runtime_seconds": round(blocking_res["runtime_seconds"], 6),
         },
         "rapidfuzz": {
             "f1_000un": round(m_e0_000["f1"], 4),

@@ -14,8 +14,7 @@
     "candidate_count": 9352,
     "total_possible": 499500,
     "pair_reduction_ratio": 0.9813,
-    "pair_completeness_recall": 0.708,
-    "runtime_seconds": 0.02135
+    "pair_completeness_recall": 0.708
   },
   "rapidfuzz": {
     "f1_000un": 0.2804,
