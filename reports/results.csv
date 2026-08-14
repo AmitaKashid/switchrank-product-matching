@@ -1,0 +1,7 @@
+Stage,F1,Precision,Recall,Hard_Neg_FPR,Unseen_100_F1
+1. Raw text / RapidFuzz (E0),0.2826,0.1728,0.776,0.616,0.2826
+2. Weighted Rules Matcher (E1),0.3855,0.2481,0.864,0.4323,0.3132
+3. Probabilistic Linkage (E2),0.3955,0.2618,0.808,0.3797,0.4319
+4. Supervised LightGBM (E3),0.385,0.2569,0.768,0.3693,0.4182
+5. LightGBM + Hard-Negative Mining,0.3868,0.2636,0.726,0.3377,0.4214
+6. Selected Matcher + Calibration & Selective Policy,0.3868,0.9834,0.1069,0.0166,0.4214
