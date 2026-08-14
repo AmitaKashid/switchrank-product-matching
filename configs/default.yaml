@@ -1,0 +1,40 @@
+seed: 42
+
+paths:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  reports_dir: "reports"
+  figures_dir: "reports/figures"
+
+wdc:
+  url: "https://data.dws.informatik.uni-mannheim.de/largescaleproductcorpus/data/wdc-products/80pair.zip"
+  variant: "80cc20rnd"
+  train_split: "train_small"
+  valid_split: "valid_small"
+  test_splits:
+    unseen_0: "000un"
+    unseen_50: "050un"
+    unseen_100: "100un"
+
+gudid:
+  product_code: "FMF"
+  description: "Syringe, Piston"
+  api_url: "https://api.fda.gov/device/510k.json?search=product_code:FMF&limit=1000"
+  sample_size: 500
+
+blocking:
+  max_pairs_per_block: 1000
+  prefix_len: 4
+  ngram_size: 3
+  window_size: 5
+
+decision:
+  target_precision: 0.99
+  match_threshold: 0.85
+  non_match_threshold: 0.20
+
+lightgbm:
+  n_estimators: 150
+  learning_rate: 0.05
+  num_leaves: 31
+  random_state: 42
