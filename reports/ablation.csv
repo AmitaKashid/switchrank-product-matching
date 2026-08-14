@@ -4,4 +4,4 @@ Stage,F1,Precision,Recall,Hard_Neg_FPR,Unseen_100_F1
 3. Probabilistic Linkage (E2),0.3955,0.2618,0.808,0.3797,0.4319
 4. Supervised LightGBM (E3),0.385,0.2569,0.768,0.3693,0.4182
 5. LightGBM + Hard-Negative Mining,0.3868,0.2636,0.726,0.3377,0.4214
-6. Selected Matcher + Calibration & Selective Policy,0.3868,0.9834,0.1069,0.0166,0.4214
+6. Selected Matcher + Calibration & Policy,0.3868,0.9834,0.1069,0.0166,0.4214

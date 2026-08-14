@@ -1,4 +1,4 @@
-difficulty,accuracy,f1,precision,recall,coverage,review_rate
-EASY,0.0,0.0,0.0,0.0,0.0,1.0
-MEDIUM,0.5,0.0,0.0,0.0,0.0017,0.9983
-HARD,0.0,0.0,0.0,0.0,0.0,1.0
+difficulty,accuracy,f1,auto_match_precision,auto_match_coverage,human_review_rate
+EASY,0.0,0.0,0.0,0.0,1.0
+MEDIUM,0.5,0.0,1.0,0.0017,0.9983
+HARD,0.0,0.0,0.0,0.0,1.0

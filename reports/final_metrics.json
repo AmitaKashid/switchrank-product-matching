@@ -1,0 +1,74 @@
+{
+  "dataset": {
+    "wdc_variant": "80cc20rnd",
+    "train_pairs": 2500,
+    "valid_pairs": 2500,
+    "test_000un_pairs": 4500,
+    "test_050un_pairs": 4500,
+    "test_100un_pairs": 4500,
+    "seed": 42
+  },
+  "blocking": {
+    "candidate_count": 520,
+    "pair_reduction_ratio": 0.984,
+    "pair_completeness_recall": 0.962
+  },
+  "rapidfuzz": {
+    "f1": 0.2826,
+    "precision": 0.1728,
+    "recall": 0.776,
+    "hard_neg_fpr": 0.616,
+    "unseen_100_f1": 0.2826
+  },
+  "rules": {
+    "f1": 0.3855,
+    "precision": 0.2481,
+    "recall": 0.864,
+    "hard_neg_fpr": 0.4323,
+    "unseen_100_f1": 0.3132
+  },
+  "fellegi_sunter": {
+    "f1": 0.3955,
+    "precision": 0.2618,
+    "recall": 0.808,
+    "hard_neg_fpr": 0.3797,
+    "unseen_100_f1": 0.4319
+  },
+  "lightgbm_standard": {
+    "f1": 0.385,
+    "precision": 0.2569,
+    "recall": 0.768,
+    "hard_neg_fpr": 0.3693,
+    "unseen_100_f1": 0.4182
+  },
+  "lightgbm_hard_negative": {
+    "f1": 0.3868,
+    "precision": 0.2636,
+    "recall": 0.726,
+    "hard_neg_fpr": 0.3377,
+    "unseen_100_f1": 0.4214
+  },
+  "calibration": {
+    "uncalibrated_ece": 0.0549,
+    "platt_ece": 0.0804,
+    "isotonic_ece": 0.0998
+  },
+  "selective_policy": {
+    "target_precision": 0.99,
+    "match_threshold": 0.69,
+    "non_match_threshold": 0.19,
+    "auto_match_precision": 0.9834,
+    "auto_match_coverage": 0.1069,
+    "human_review_rate": 0.8931,
+    "false_auto_match_rate": 0.0166
+  },
+  "healthcare_transfer": {
+    "source_dataset": "FDA 510(k) Device Clearances Database (Product Code FMF: Syringe, Piston)",
+    "easy_accuracy": 0.0,
+    "easy_review_rate": 1.0,
+    "medium_accuracy": 0.5,
+    "medium_review_rate": 0.9983,
+    "hard_accuracy": 0.0,
+    "hard_review_rate": 1.0
+  }
+}

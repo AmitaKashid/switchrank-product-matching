@@ -13,7 +13,7 @@ It addresses real-world entity matching challenges where heterogeneous vendor de
 ## 30-Second Executive Summary for Reviewers
 1. **Problem**: Vendors describe the same product differently, while near-identical products (e.g. 16GB vs 64GB flash drives, 5mL vs 10mL syringes) trigger dangerous false positive matches under naive text similarity.
 2. **Why Ordinary Similarity Fails**: Lexical similarity (RapidFuzz) achieves high recall on easy pairs but suffers a **61.60% False Positive Rate on hard negatives**.
-3. **Data Used**: Official Web Data Commons (WDC) Products benchmark (`80cc20rnd` corner cases) and FDA AccessGUDID medical device catalog data (`product_code: FMF`).
+3. **Data Used**: Official Web Data Commons (WDC) Products benchmark (`80cc20rnd` corner cases) and FDA 510(k) Medical Device Clearance database (`product_code: FMF`).
 4. **Core Architecture**: Deterministic Normalizer -> Multi-Pass Candidate Blocker -> Pairwise Feature Extractor -> Hard-Negative Weighted LightGBM Classifier -> Isotonic Calibrator -> Validation-Driven Selective Decision Policy.
 5. **Key Measured Findings**: Hard-negative sample weighting reduced hard-negative false positive rate from **61.60% down to 33.77%**. Isotonic calibration with a selective policy achieved **98.34% auto-match precision** on resolved pairs while routing ambiguous pairs to `REVIEW`.
 
@@ -30,7 +30,7 @@ It addresses real-world entity matching challenges where heterogeneous vendor de
 | **5. LightGBM + Hard-Negative Mining** | 0.3868 | 0.2636 | 0.7260 | **0.3377** | 0.4214 |
 | **6. Selected Matcher + Calibration & Policy** | 0.3868 | **98.34%** | **10.69%** | **1.66%** | 0.4214 |
 
-*All metrics independently regenerated from pipeline evaluation on official WDC benchmark test sets (`000un` and `100un`).*
+*All metrics independently regenerated from `reports/final_metrics.json` via `scripts/generate_reports.py`.*
 
 ---
 
@@ -62,9 +62,9 @@ Vendor Records -> Normalization -> Candidate Blocking -> Feature Extractor -> Li
 
 ---
 
-## Healthcare Domain Transfer Evaluation (AccessGUDID FMF)
-- **Context**: AccessGUDID evaluation serves as a controlled canonical-resolution stress test on FDA product code `FMF` (Syringe, Piston). It is **not** a clinical equivalence engine.
-- **Selective Policy Abstention**: Because medical device catalog descriptions differ significantly from consumer e-commerce offers, calibrated probabilities fall into the ambiguous range (0.20–0.69). The selective policy correctly routes **89%+ of zero-shot healthcare pairs to `REVIEW`**, preventing unsafe auto-matching.
+## Healthcare Domain Transfer Evaluation (FDA 510(k) Clearances)
+- **Context**: Domain transfer evaluation serves as a controlled canonical-resolution stress test on the **FDA 510(k) Medical Device Clearance Database** (`product_code: FMF` — Syringe, Piston). It is **not** a clinical equivalence engine.
+- **Selective Policy Abstention**: Because medical device catalog descriptions differ significantly from consumer e-commerce offers, calibrated probabilities fall into the ambiguous range (0.20–0.69). The selective policy correctly routes **89%+ to 99%+ of zero-shot healthcare pairs to `REVIEW`**, preventing unsafe auto-matching.
 
 ---
 
@@ -111,7 +111,7 @@ uv run uvicorn switchrank.api.main:app --port 8000 --reload
 
 ## Limitations
 - **Not a Clinical Equivalence Engine**: This project resolves catalog identities for medical devices. It does NOT assert clinical equivalence or interchangeability.
-- **Synthetic Healthcare Stress Test**: AccessGUDID perturbations imitate catalog noise but are synthetically generated for controlled evaluation.
+- **Synthetic Healthcare Stress Test**: FDA 510(k) perturbations imitate catalog noise but are synthetically generated for controlled evaluation.
 
 ---
 
@@ -129,7 +129,7 @@ make data
 # 2. Run model training
 make train
 
-# 3. Execute evaluations & generate reports
+# 3. Execute canonical evaluation & generate reports
 make evaluate
 
 # 4. Run pytest suite
@@ -143,6 +143,6 @@ make app
 
 ## Data Licenses & Attribution
 - **WDC Products**: Provided by University of Mannheim under Creative Commons Attribution 4.0 International (CC BY 4.0).
-- **AccessGUDID / FDA 510(k)**:
+- **FDA 510(k) Clearances / AccessGUDID**:
   > "This product uses publicly available data courtesy of the U.S. National Library of Medicine (NLM) and the Food and Drug Administration (FDA). NLM and FDA are not responsible for the product's quality or performance, nor do they endorse this product."
 - **Exclusions**: All GMDN term/code content and D-U-N-S data are strictly excluded due to third-party licensing conditions.
