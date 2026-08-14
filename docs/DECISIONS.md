@@ -4,57 +4,45 @@ This document tracks all empirical architectural, feature engineering, and model
 
 ---
 
-## Decision 1 — Benchmark Configuration & Variant
+## Decision 1 — Candidate Blocking Strategy & Trade-Offs
 
 **Question**
-Which WDC Products benchmark configuration and development split size should be selected to stress-test corner-case product matching while remaining computationally practical?
-
-**Hypothesis**
-The `80cc20rnd` configuration (80% corner cases) will provide realistic hard-negative pairs without overfitting to trivial dissimilarity.
-
-**Experiment**
-Inspected WDC benchmark variants (`20cc80rnd`, `50cc50rnd`, `80cc20rnd`) and train sizes (`train_small`, `train_medium`). Evaluated pair counts and difficulty distributions.
+How should candidate pair generation be structured to prune $O(N^2)$ comparisons while evaluating blocking recall?
 
 **Result**
-`80cc20rnd` contains 80% hard negatives (near-identical product titles with different specifications or variants). `train_small` provides 2,500 candidate pairs, allowing rapid iterative training while maintaining high difficulty.
+Multi-pass candidate blocking (Brand + Prefix + Sorted Neighborhood) generates **9,352 candidate pairs** out of **499,500 possible comparisons** on `train_df`, achieving a **98.13% pair reduction ratio** and a **70.80% blocking recall** (354 / 500 ground-truth matches retained).
 
 **Decision**
-Retained `80cc20rnd` with `train_small`/`valid_small` splits as the primary development benchmark, evaluated against official `000un`, `050un`, and `100un` test sets.
+Document candidate blocking as an efficient $O(N \log N)$ baseline, while explicitly noting that a blocking recall of 70.80% is a known limitation requiring higher-recall candidate generation (e.g. ANN / vector embeddings) for production deployment.
 
 ---
 
-## Decision 2 — Probabilistic Linkage vs Supervised LightGBM
+## Decision 2 — Probabilistic Linkage vs Supervised LightGBM Trade-Off
 
 **Question**
-Does supervised pairwise classification materially outperform classical Fellegi–Sunter probabilistic record linkage?
-
-**Hypothesis**
-Supervised LightGBM will outperform Fellegi–Sunter due to non-linear feature interaction modeling.
-
-**Experiment**
-Compared Fellegi–Sunter record linkage (E2) against standard LightGBM (E3) on WDC `test_000un` and `test_100un`.
+Which model architecture provides the optimal operational tradeoff between overall matching accuracy and hard-negative false-positive control?
 
 **Result**
-Fellegi–Sunter achieved **0.3955 F1** on `test_000un` and **0.4319 F1** on unseen `test_100un`, whereas standard LightGBM achieved 0.3850 F1 and 0.4182 F1. LightGBM + Hard-Negative sample weighting achieved **0.3868 F1** on `test_000un` and **0.4214 F1** on `test_100un`, while reducing hard-negative false positive rate down to **33.77%**.
+- **Fellegi–Sunter Probabilistic Linkage (E2)** achieves the highest overall matching accuracy (**0.3955 F1** on `000un` and **0.4319 F1** on unseen `100un` test data) while offering complete transparency via explicit log-likelihood agreement weights ($W = \log_2 \frac{m}{u}$).
+- **Supervised LightGBM (E3)** paired with $3.0\times$ hard-negative sample weighting achieves the lowest hard-negative false positive rate (**33.77% Hard-Neg FPR** vs standard LightGBM's 39.33%).
 
 **Decision**
-Retained both LightGBM (for hard-negative FPR minimization) and Fellegi–Sunter (for interpretable log-likelihood agreement weights).
+Retain **both** matchers as complementary evidence about accuracy versus high-risk false-match behavior rather than declaring a single universal winner.
 
 ---
 
-## Decision 3 — Selective Decision Policy & Numeric Overrides
+## Decision 3 — Leakage-Safe Probability Calibration & Selective Policy
 
 **Question**
-Can the model enforce 99.0% auto-match precision while routing ambiguous or numeric spec conflicts to human review?
-
-**Hypothesis**
-Enforcing validation-tuned probability thresholds and numeric mismatch penalty rules will eliminate false positive matches on capacity/spec conflicts.
-
-**Experiment**
-Tuned match/non-match thresholds on validation data targeting 99% precision with isotonic calibration.
+Which probability calibration method minimizes Expected Calibration Error on held-out validation data, and how should thresholds be selected?
 
 **Result**
-Achieved **98.34% auto-match precision** at **10.69% auto-match coverage** on `test_000un`, routing **89.31%** of ambiguous pairs to `REVIEW`. Zero false positive matches occurred on numeric mismatch overrides.
+Split `valid_small` (2,500 pairs) into `val_calib` (1,250 pairs, for fitting calibrators) and `val_policy` (1,250 pairs, for evaluation and threshold tuning). On `val_policy`:
+- **Uncalibrated**: ECE = 0.0798
+- **Platt Sigmoid**: ECE = 0.0517
+- **Isotonic Regression**: ECE = **0.0290**
+
+Tuned on `val_policy` for target 99% precision, the selective policy ($\tau_{match} = 0.610$, $\tau_{non\_match} = 0.170$) achieved **98.34% auto-match precision** at **10.71% coverage** on `test_000un`, routing **89.29%** of ambiguous pairs to `REVIEW`.
 
 **Decision**
-Enforced isotonic probability calibration and selective decision policy with numeric contradiction override.
+Enforce Isotonic Regression calibration and validation-tuned selective decision thresholds with scalar numeric contradiction penalty overrides.

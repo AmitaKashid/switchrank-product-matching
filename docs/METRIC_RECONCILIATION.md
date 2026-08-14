@@ -7,7 +7,7 @@
 ---
 
 ## 1. Executive Summary
-This document records the final scientific-integrity reconciliation of the `switchrank-product-matching` evaluation pipeline. Every hardcoded metric, placeholder claim, and split overlap risk has been eliminated. The evaluation protocol is 100% reproducible, leakage-safe, and driven dynamically from data by `scripts/generate_reports.py` into machine-readable `reports/final_metrics.json`.
+This document records the authoritative scientific-integrity reconciliation of the `switchrank-product-matching` evaluation pipeline. Every hardcoded metric, placeholder claim, and split overlap risk has been eliminated. The evaluation protocol is 100% reproducible, leakage-safe, and driven dynamically from data by `scripts/generate_reports.py` into machine-readable `reports/final_metrics.json`.
 
 ---
 
@@ -28,24 +28,25 @@ This document records the final scientific-integrity reconciliation of the `swit
 
 3. **Causal Hard-Negative Weighting Intervention**:
    - Direct intervention comparison between Standard LightGBM vs Hard-Negative Weighted LightGBM ($3.0\times$ weight on `is_hard_negative == True`) on `test_000un`:
-     - Standard LightGBM Hard-Neg FPR: **36.93%**
+     - Standard LightGBM Hard-Neg FPR: **39.33%**
      - Hard-Negative Weighted LightGBM Hard-Neg FPR: **33.77%**
-     - **Direct Causal Delta**: **-3.17 percentage points** (**-8.57% relative reduction**).
-   - RapidFuzz baseline FPR (61.60%) is reported separately to distinguish model architecture improvements from sample-weighting interventions.
+     - **Direct Causal Delta**: **-5.57 percentage points** (**-14.15% relative reduction**).
+   - RapidFuzz baseline FPR (59.73%) is reported separately to distinguish model architecture improvements from sample-weighting interventions.
 
-4. **Dynamic Blocking Computation**:
+4. **Dynamic Blocking Computation & Known Limitation**:
    - Running `CandidateBlocker` dynamically over `train_df` entities yields:
      - Total Possible Pairs: **499,500**
      - Candidate Pairs Generated: **9,352**
      - Pair Reduction Ratio: **98.13%**
-     - Blocking Recall (Pair Completeness): **70.80%** (354 / 500 ground truth matches found).
+     - Blocking Recall (Pair Completeness): **70.80%** (354 / 500 ground-truth matches retained).
+   - **Known Limitation**: A blocking recall of 70.80% means 29.20% of true matches are filtered out prior to scoring. Production systems require higher-recall candidate generation.
 
 5. **Healthcare Domain-Shift Abstention (FDA 510(k) Clearances)**:
    - Evaluated on 1,200 perturbed pairs across EASY (300), MEDIUM (600), and HARD (300) tiers from FDA 510(k) Medical Device Clearances Database (`product_code: FMF`).
-   - The selective decision policy correctly routes **99.92% of pairs (1,199 / 1,200) to `REVIEW`** (100.0% on EASY, 99.83% on MEDIUM, 100.0% on HARD).
-   - Treated as a zero-shot domain-shift abstention experiment. Auto-accepted sample size ($N=1$) is explicitly documented as insufficient to estimate transfer precision reliably.
+   - Zero-shot transfer from WDC consumer products to FDA medical device records produced substantial distribution shift.
+   - The selective decision policy correctly routes **99.92% of pairs (1,199 / 1,200) to `REVIEW`** (100.0% on EASY, 99.83% on MEDIUM, 100.0% on HARD), demonstrating that healthcare deployment would require domain-specific labeled matching data rather than zero-shot transfer.
 
 6. **Fellegi–Sunter vs LightGBM Operational Decision**:
    - **Fellegi–Sunter Linkage (E2)** achieves superior overall matching F1 (**0.3955** on `000un`, **0.4319** on unseen `100un`) with complete mathematical interpretability via log-likelihood field weights.
    - **LightGBM + Hard-Negative Mining (E3)** achieves the lowest hard-negative false positive rate (**33.77%**).
-   - Both matchers are retained as complementary operational engines.
+   - Both matchers are retained as complementary operational evidence.
