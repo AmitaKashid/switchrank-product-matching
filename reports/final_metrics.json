@@ -3,72 +3,111 @@
     "wdc_variant": "80cc20rnd",
     "train_pairs": 2500,
     "valid_pairs": 2500,
+    "val_calib_pairs": 1250,
+    "val_policy_pairs": 1250,
     "test_000un_pairs": 4500,
     "test_050un_pairs": 4500,
     "test_100un_pairs": 4500,
     "seed": 42
   },
   "blocking": {
-    "candidate_count": 520,
-    "pair_reduction_ratio": 0.984,
-    "pair_completeness_recall": 0.962
+    "candidate_count": 9352,
+    "total_possible": 499500,
+    "pair_reduction_ratio": 0.9813,
+    "pair_completeness_recall": 0.708,
+    "runtime_seconds": 0.02135
   },
   "rapidfuzz": {
-    "f1": 0.2826,
-    "precision": 0.1728,
-    "recall": 0.776,
-    "hard_neg_fpr": 0.616,
-    "unseen_100_f1": 0.2826
+    "f1_000un": 0.2804,
+    "f1_050un": 0.308,
+    "f1_100un": 0.2982,
+    "precision": 0.1724,
+    "recall": 0.75,
+    "hard_neg_fpr": 0.5973
   },
   "rules": {
-    "f1": 0.3855,
-    "precision": 0.2481,
-    "recall": 0.864,
-    "hard_neg_fpr": 0.4323,
-    "unseen_100_f1": 0.3132
+    "f1_000un": 0.3881,
+    "f1_050un": 0.4148,
+    "f1_100un": 0.4205,
+    "precision": 0.2504,
+    "recall": 0.862,
+    "hard_neg_fpr": 0.4267
   },
   "fellegi_sunter": {
-    "f1": 0.3955,
+    "f1_000un": 0.3955,
+    "f1_050un": 0.4252,
+    "f1_100un": 0.4319,
     "precision": 0.2618,
     "recall": 0.808,
-    "hard_neg_fpr": 0.3797,
-    "unseen_100_f1": 0.4319
+    "hard_neg_fpr": 0.3797
   },
   "lightgbm_standard": {
-    "f1": 0.385,
-    "precision": 0.2569,
-    "recall": 0.768,
-    "hard_neg_fpr": 0.3693,
-    "unseen_100_f1": 0.4182
+    "f1_000un": 0.3817,
+    "f1_050un": 0.4105,
+    "f1_100un": 0.411,
+    "precision": 0.2513,
+    "recall": 0.794,
+    "hard_neg_fpr": 0.3933
   },
   "lightgbm_hard_negative": {
-    "f1": 0.3868,
+    "f1_000un": 0.3868,
+    "f1_050un": 0.4208,
+    "f1_100un": 0.4214,
     "precision": 0.2636,
     "recall": 0.726,
-    "hard_neg_fpr": 0.3377,
-    "unseen_100_f1": 0.4214
+    "hard_neg_fpr": 0.3377
+  },
+  "hard_negative_causal_delta": {
+    "standard_hard_neg_fpr": 0.3933,
+    "weighted_hard_neg_fpr": 0.3377,
+    "percentage_point_change": -5.57,
+    "relative_percent_change": -14.15
   },
   "calibration": {
-    "uncalibrated_ece": 0.0549,
-    "platt_ece": 0.0804,
-    "isotonic_ece": 0.0998
+    "val_policy_uncalibrated_ece": 0.0798,
+    "val_policy_platt_ece": 0.0517,
+    "val_policy_isotonic_ece": 0.029,
+    "selected_method": "isotonic"
   },
   "selective_policy": {
     "target_precision": 0.99,
-    "match_threshold": 0.69,
-    "non_match_threshold": 0.19,
+    "match_threshold": 0.61,
+    "non_match_threshold": 0.17,
     "auto_match_precision": 0.9834,
-    "auto_match_coverage": 0.1069,
-    "human_review_rate": 0.8931,
+    "auto_match_coverage": 0.1071,
+    "human_review_rate": 0.8929,
     "false_auto_match_rate": 0.0166
   },
   "healthcare_transfer": {
-    "source_dataset": "FDA 510(k) Device Clearances Database (Product Code FMF: Syringe, Piston)",
-    "easy_accuracy": 0.0,
-    "easy_review_rate": 1.0,
-    "medium_accuracy": 0.5,
-    "medium_review_rate": 0.9983,
-    "hard_accuracy": 0.0,
-    "hard_review_rate": 1.0
+    "source_dataset": "FDA 510(k) Medical Device Clearances Database (Product Code FMF: Syringe, Piston)",
+    "by_difficulty": {
+      "EASY": {
+        "total_pairs": 300,
+        "auto_accepted_count": 0,
+        "reviewed_count": 300,
+        "auto_match_coverage": 0.0,
+        "human_review_rate": 1.0,
+        "auto_precision": null,
+        "sample_sufficient": false
+      },
+      "MEDIUM": {
+        "total_pairs": 600,
+        "auto_accepted_count": 1,
+        "reviewed_count": 599,
+        "auto_match_coverage": 0.0017,
+        "human_review_rate": 0.9983,
+        "auto_precision": null,
+        "sample_sufficient": false
+      },
+      "HARD": {
+        "total_pairs": 300,
+        "auto_accepted_count": 0,
+        "reviewed_count": 300,
+        "auto_match_coverage": 0.0,
+        "human_review_rate": 1.0,
+        "auto_precision": null,
+        "sample_sufficient": false
+      }
+    }
   }
 }

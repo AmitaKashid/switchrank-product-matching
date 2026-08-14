@@ -5,36 +5,39 @@ SwitchRank is an evidence-driven machine learning system for cross-catalog produ
 
 ---
 
-## 1. Authoritative Reconciled Ablation Table
+## 1. Reconciled Ablation & Model Comparison Table
 
-| Pipeline Stage | Overall F1 | Precision | Recall | Hard-Negative FPR | Unseen Entity (100un) F1 |
+| Pipeline Stage | 000un F1 | 100un F1 | Precision | Recall | Hard-Negative FPR |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1. Raw text / RapidFuzz (E0)** | 0.2826 | 0.1728 | 0.7760 | 0.6160 | 0.2826 |
-| **2. Weighted Rules Matcher (E1)** | 0.3855 | 0.2481 | 0.8640 | 0.4323 | 0.3132 |
-| **3. Fellegi–Sunter Probabilistic Linkage (E2)** | **0.3955** | 0.2618 | 0.8080 | 0.3797 | **0.4319** |
-| **4. Supervised LightGBM (E3)** | 0.3850 | 0.2569 | 0.7680 | 0.3693 | 0.4182 |
-| **5. LightGBM + Hard-Negative Mining** | 0.3868 | 0.2636 | 0.7260 | **0.3377** | 0.4214 |
-| **6. Selected Matcher + Calibration & Policy** | 0.3868 | **98.34%** | **10.69%** | **1.66%** | 0.4214 |
+| **1. Raw text / RapidFuzz (E0)** | 0.2804 | 0.2982 | 0.1724 | 0.7500 | 0.5973 |
+| **2. Weighted Rules Matcher (E1)** | 0.3881 | 0.4205 | 0.2504 | 0.8620 | 0.4267 |
+| **3. Fellegi–Sunter Linkage (E2)** | **0.3955** | **0.4319** | 0.2618 | 0.8080 | 0.3797 |
+| **4. Supervised LightGBM (E3)** | 0.3817 | 0.4110 | 0.2513 | 0.7940 | 0.3933 |
+| **5. LightGBM + Hard-Negative Mining** | 0.3868 | 0.4214 | 0.2636 | 0.7260 | **0.3377** |
+| **6. Selected Matcher + Calibration & Policy** | 0.3868 | 0.4214 | **98.34%** | **10.71%** | **1.66%** |
 
 ---
 
 ## 2. Key Empirical Findings & Answers to Research Questions
 
 ### RQ1: String Dissimilarity Baseline (E0)
-Simple RapidFuzz token set ratio suffers a **61.60% False Positive Rate on hard negatives**, yielding an overall F1 of 0.2826.
+Simple RapidFuzz token set ratio suffers a **59.73% False Positive Rate on hard negatives**, yielding an overall F1 of 0.2804.
 
 ### RQ2: Candidate Blocking Pair Reduction
-Multi-pass blocking (Brand + Prefix + Sorted Neighborhood) achieves **98.4% pair reduction ratio** while preserving **96.2% pair completeness recall**.
+Multi-pass blocking (Brand + Prefix + Sorted Neighborhood) generates **9352 candidate pairs** out of 499500 possible comparisons (**98.13% pair reduction ratio**) while preserving **70.80% blocking recall**.
 
-### RQ3: Probabilistic Linkage (E2) vs Rules (E1)
-Fellegi–Sunter probabilistic record linkage achieves **0.3955 F1** and **0.4319 unseen 100un F1**, outperforming handcrafted weighted rules.
+### RQ3 & RQ4: Fellegi–Sunter vs LightGBM Trade-Off
+- **Fellegi–Sunter Linkage (E2)** achieves superior overall matching quality (**0.3955 F1** on `000un`, **0.4319 F1** on unseen `100un`) while being fully interpretable via explicit log-likelihood agreement weights ($W = \log_2 \frac{m}{u}$).
+- **LightGBM + Hard-Negative Mining (E3)** minimizes dangerous hard-negative false matches, achieving the lowest hard-negative FPR (**33.77%**).
 
-### RQ4: Hard-Negative Mining Impact
-Upweighting hard negative training pairs ($3.0\times$) reduces hard-negative false positive rate from **61.60% (E0 baseline) and 36.93% (standard LightGBM) down to 33.77%**.
+### Causal Effect of Hard-Negative Sample Weighting
+Comparing standard LightGBM directly against hard-negative weighted LightGBM ($3.0\times$ sample weight):
+- Hard-Negative FPR reduced from **39.33% down to 33.77%** (a **-5.57 percentage point** or **-14.15% relative** reduction).
 
 ### RQ7 & RQ8: Calibration & Selective Decision Policy
-Isotonic regression calibration reduces Expected Calibration Error (ECE) to **0.0998**. Under the selective decision policy tuned for target 99% precision, the engine achieves **98.34% auto-match precision** at **10.69% coverage**, routing **89.31%** of ambiguous pairs to human review.
+Isotonic regression calibration achieved the lowest calibration error on `val_policy` (ECE: **0.0290** vs uncalibrated **0.0798**). Under the selective decision policy tuned for target 99% precision, the engine achieves **98.34% auto-match precision** at **10.71% coverage**, routing **89.29%** of ambiguous pairs to human review.
 
-### RQ9: Healthcare Domain Transfer Stress Test (FDA 510(k) Clearances)
+### RQ9: Healthcare Domain-Shift & Abstention (FDA 510(k) Clearances)
 Evaluated on FDA 510(k) Medical Device Clearances Database (`product_code: FMF`):
-- Transferred calibrated probabilities fall into the ambiguous threshold range, causing the selective policy to correctly route **99.83%+** of pairs to `REVIEW`, preventing unsafe automated medical device matching.
+- Because medical device descriptions differ significantly from consumer e-commerce offers, zero-shot calibrated probabilities fall into the ambiguous threshold range.
+- The selective policy correctly routes **99.83%+ to 100.0% of pairs to REVIEW** across EASY, MEDIUM, and HARD noise tiers, safely abstaining from automated medical device matching. Due to low auto-accepted sample sizes ($N \le 1$), transfer precision cannot be reliably estimated.
