@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -9,13 +10,7 @@ from switchrank.models.supervised import SupervisedLightGBMMatcher
 from switchrank.calibration.calibrator import ProbabilityCalibrator
 from switchrank.decision.policy import SelectiveDecisionPolicy, DECISION_MATCH, DECISION_REVIEW, DECISION_NON_MATCH
 
-app = FastAPI(
-    title="SwitchRank API",
-    description="Reliable Cross-Catalog Product Matching with Calibrated Abstention Decisions and Evidence Routing",
-    version="0.1.0",
-)
-
-# Global pipeline state initialized lazily or on startup
+# Global pipeline state initialized lazily or during lifespan startup
 feature_extractor = PairFeatureExtractor()
 model_matcher = SupervisedLightGBMMatcher()
 calibrator = ProbabilityCalibrator(method="isotonic")
@@ -37,25 +32,33 @@ def initialize_dummy_pipeline():
     calibrator.fit(probs, dummy_data["label"].values)
     is_trained = True
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    initialize_dummy_pipeline()
+    yield
+
+app = FastAPI(
+    title="SwitchRank API",
+    description="Reliable Cross-Catalog Product Matching with Calibrated Abstention Decisions and Evidence Routing",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
 class ProductRecord(BaseModel):
-    title: str = Field(..., example="BD Syringe 10 mL Luer-Lok Tip")
-    brand: Optional[str] = Field(None, example="BD")
-    description: Optional[str] = Field(None, example="Sterile piston syringe 10ml")
+    title: str = Field(..., json_schema_extra={"example": "BD Syringe 10 mL Luer-Lok Tip"})
+    brand: Optional[str] = Field(None, json_schema_extra={"example": "BD"})
+    description: Optional[str] = Field(None, json_schema_extra={"example": "Sterile piston syringe 10ml"})
 
 class PairMatchRequest(BaseModel):
     record_left: ProductRecord
     record_right: ProductRecord
 
 class PairMatchResponse(BaseModel):
-    decision: str = Field(..., example="MATCH")
-    calibrated_confidence: float = Field(..., example=0.962)
+    decision: str = Field(..., json_schema_extra={"example": "MATCH"})
+    calibrated_confidence: float = Field(..., json_schema_extra={"example": 0.962})
     supporting_evidence: List[str]
     conflicting_evidence: List[str]
     review_reasons: List[str]
-
-@app.on_event("startup")
-def startup_event():
-    initialize_dummy_pipeline()
 
 @app.get("/health")
 def health_check():
@@ -71,8 +74,8 @@ def match_records(request: PairMatchRequest):
     if not is_trained:
         initialize_dummy_pipeline()
 
-    rec_left = request.record_left.dict()
-    rec_right = request.record_right.dict()
+    rec_left = request.record_left.model_dump()
+    rec_right = request.record_right.model_dump()
 
     feat_dict = feature_extractor.extract_pair_features(rec_left, rec_right)
     df_single = pd.DataFrame([{
