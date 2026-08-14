@@ -22,21 +22,27 @@ wheels/
 
 # Virtual environments
 .venv/
-env/
 venv/
+env/
 ENV/
 
 # Data and caches
 data/raw/
 data/processed/
+data/cache/
+models/
+artifacts/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
 
 # System / OS
+.ipynb_checkpoints/
 .DS_Store
 Thumbs.db
 *.log
 
 # Secrets / Env
 .env
+.env.*
+!.env.example
