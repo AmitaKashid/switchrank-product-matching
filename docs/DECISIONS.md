@@ -1,6 +1,6 @@
 # DECISION LOG — SwitchRank Architecture & Modeling Choices
 
-This document tracks all empirical architectural, feature engineering, and model choices. All metrics align with `reports/final_metrics.json`.
+
 
 ---
 
