@@ -1,6 +1,6 @@
 # METRIC RECONCILIATION & SCIENTIFIC INTEGRITY REPORT — SwitchRank
 
-**Author**: Senior Staff ML Engineer
+
 **Date**: August 2026
 **Repository**: `switchrank-product-matching`
 
